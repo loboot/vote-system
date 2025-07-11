@@ -16,7 +16,7 @@
 ## 技术栈
 
 - 后端：Go 1.20+、Gin、GORM、MySQL
-- 前端：React 18+、Tailwind CSS、HTML5、CSS3、响应式设计
+- 前端：React 18+、Zustand、Tailwind CSS、HTML5、CSS3、响应式设计
 - 通信协议：RESTful JSON API
 
 ## 目录结构
@@ -56,9 +56,9 @@ npm start
 
 ## TODO
 
-- [ ] 用户认证与权限
+- [x] 用户认证与权限
 - [ ] 投票表单创建与管理
 - [ ] 投票功能（单选/多选）
 - [ ] 投票结果展示与防刷票
 - [ ] 投票倒计时
-- [ ] 响应式前端页面 
+- [ ] 响应式前端页面

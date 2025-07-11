@@ -9,12 +9,15 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+
+	"github.com/gin-contrib/cors"
 )
 
 func main() {
 	db := initDB()
 
 	r := gin.Default()
+	r.Use(cors.Default())
 
 	r.POST("/register", func(c *gin.Context) {
 		var req struct {
