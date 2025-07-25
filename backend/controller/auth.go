@@ -34,18 +34,37 @@ func (ctrl *AuthController) Register(c *gin.Context) {
 	utils.SuccessWithMessage(c, "注册成功", nil)
 }
 
-func (ctrl *AuthController) Login(c *gin.Context) {
-	var req dto.LoginRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.Error(c, http.StatusBadRequest, "参数错误")
+func (ctrl *AuthController) GetProfile(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		utils.Error(c, http.StatusUnauthorized, "未授权")
 		return
 	}
 
-	result, err := ctrl.authService.Login(&req)
-	if err != nil {
-		utils.Error(c, http.StatusBadRequest, err.Error())
+	username, exists := c.Get("username")
+	if !exists {
+		utils.Error(c, http.StatusUnauthorized, "未授权")
 		return
 	}
 
-	utils.SuccessWithMessage(c, "登录成功", result)
+	utils.Success(c, gin.H{
+		"id":       userID,
+		"username": username,
+	})
 }
+
+// func (ctrl *AuthController) Login(c *gin.Context) {
+// 	var req dto.LoginRequest
+// 	if err := c.ShouldBindJSON(&req); err != nil {
+// 		utils.Error(c, http.StatusBadRequest, "参数错误")
+// 		return
+// 	}
+
+// 	result, err := ctrl.authService.Login(&req)
+// 	if err != nil {
+// 		utils.Error(c, http.StatusBadRequest, err.Error())
+// 		return
+// 	}
+
+// 	utils.SuccessWithMessage(c, "登录成功", result)
+// }

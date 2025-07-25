@@ -17,11 +17,6 @@ func NewAuthService() *AuthService {
 }
 
 func (s *AuthService) Register(req *dto.RegisterRequest) error {
-	// 检查密码确认
-	if req.Password != req.ConfirmPassword {
-		return errors.New("两次密码不一致")
-	}
-
 	// 检查用户名是否已存在
 	var existingUser model.User
 	if err := database.GetDB().Where("username = ?", req.Username).First(&existingUser).Error; err == nil {

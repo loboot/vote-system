@@ -1,14 +1,23 @@
 package config
 
-import "os"
+import (
+	"os"
+	"time"
+)
 
 type Config struct {
 	Port     string
 	Database DatabaseConfig
+	JWT      JWTConfig
 }
 
 type DatabaseConfig struct {
 	DSN string
+}
+
+type JWTConfig struct {
+	Secret     string
+	ExpireTime time.Duration
 }
 
 func Load() *Config {
@@ -16,6 +25,10 @@ func Load() *Config {
 		Port: getEnv("PORT", ":8080"),
 		Database: DatabaseConfig{
 			DSN: getEnv("DATABASE_DSN", "root:root@tcp(localhost:3306)/vote_db?charset=utf8mb4&parseTime=True&loc=Local"),
+		},
+		JWT: JWTConfig{
+			ExpireTime: time.Hour * 24,
+			Secret:     getEnv("JWT_SECRET", "default_secret_key"),
 		},
 	}
 }

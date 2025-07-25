@@ -1,31 +1,38 @@
 package router
 
 import (
+	"log"
 	"vote-system-backend/config"
 	"vote-system-backend/controller"
 	"vote-system-backend/middleware"
 
+	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 )
+
+func handlerMiddleWare(authMiddleware *jwt.GinJWTMiddleware) gin.HandlerFunc {
+	return func(context *gin.Context) {
+		errInit := authMiddleware.MiddlewareInit()
+		if errInit != nil {
+			log.Fatal("authMiddleware.MiddlewareInit() Error:" + errInit.Error())
+		}
+	}
+}
 
 func SetupRouter(cfg *config.Config) *gin.Engine {
 	r := gin.Default()
 
 	// 中间件
+	jwtMiddleware, err := middleware.JWT(cfg)
+	if err != nil {
+		log.Fatal("JWT Error:" + err.Error())
+	}
+
 	r.Use(middleware.CORS())
 
 	// 控制器
 	authController := controller.NewAuthController()
 	voteController := controller.NewVoteController()
-
-	// 健康检查接口
-	r.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"status":  "ok",
-			"message": "Vote System API is running",
-			"version": "1.0.0",
-		})
-	})
 
 	// 公共路由
 	api := r.Group("/api")
@@ -34,11 +41,13 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 		auth := api.Group("/auth")
 		{
 			auth.POST("/register", authController.Register)
-			auth.POST("/login", authController.Login)
+			auth.GET("/profile", authController.GetProfile)
+
+			auth.POST("/login", jwtMiddleware.LoginHandler)
+			auth.POST("/refresh", jwtMiddleware.RefreshHandler)
 		}
 
-		// 投票相关路由（暂时不需要认证，便于测试）
-		vote := api.Group("/vote")
+		vote := api.Group("/vote", jwtMiddleware.MiddlewareFunc())
 		{
 			vote.POST("/create", voteController.CreateVote)
 			vote.GET("/:id", voteController.GetVote)
@@ -48,6 +57,7 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 			vote.GET("/my", voteController.GetUserVotes)
 			vote.GET("/all", voteController.GetAllVotes)
 		}
+
 	}
 
 	return r

@@ -1,158 +1,274 @@
-import { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { FaUserAlt, FaLock } from 'react-icons/fa';
-import useAuthStore from '@/store/AuthContext';
-import { login as loginApi, register as registerApi } from '@/services/auth';
-import { useNavigate } from 'react-router';
+import { FaUser, FaLock,  FaEye, FaEyeSlash } from 'react-icons/fa';
+import { useAuth } from '../contexts/AuthContext';
 
-interface IFormInput {
+interface LoginFormData {
   username: string;
   password: string;
-  confirmPassword?: string; // Added for registration
 }
-export default function AuthPage() {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-    watch,
-    setError,
-    clearErrors,
-    reset,
-  } = useForm<IFormInput>();
+
+interface RegisterFormData {
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+const Auth: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const setAuth = useAuthStore((s) => s.setAuth);
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [authError, setAuthError] = useState('');
+  const { login, register: registerUser } = useAuth();
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/');
-    }
-  }, [isAuthenticated, navigate]);
+  const loginForm = useForm<LoginFormData>();
+  const registerForm = useForm<RegisterFormData>();
 
-  if (isAuthenticated) return null;
-
-  const onSubmit = async (data: IFormInput) => {
+  const handleLogin = async (data: LoginFormData) => {
+    setAuthError('');
     try {
-      if (!isLogin) {
-        // 注册时校验两次密码
-        if (data.password !== data.confirmPassword) {
-          setError('password', { message: '两次密码不一致' });
-          setError('confirmPassword', { message: '两次密码不一致' });
-          return;
-        }
-        // 注册
-        await registerApi({
-          username: data.username,
-          password: data.password,
-          confirmPassword: data.confirmPassword!,
-        });
-        reset();
-        setIsLogin(true);
-      } else {
-        // 登录
-        const res = await loginApi({
-          username: data.username,
-          password: data.password,
-        });
-
-        /// token
-        setAuth(res.data.user, 'token');
-
-        navigate('/');
+      const success = await login(data.username, data.password);
+      if (!success) {
+        setAuthError('用户名或密码错误');
       }
-    } catch (err: unknown) {
-      console.error(err);
-
-      const msg = '认证失败';
-
-      setError('username', { message: msg });
+    } catch  {
+      setAuthError('登录失败，请稍后再试');
     }
   };
-  const password = watch('password');
+
+  const handleRegister = async (data: RegisterFormData) => {
+    setAuthError('');
+    
+    if (data.password !== data.confirmPassword) {
+      registerForm.setError('confirmPassword', { 
+        type: 'manual', 
+        message: '两次密码输入不一致' 
+      });
+      return;
+    }
+
+    try {
+      const success = await registerUser(data.username, data.password);
+      if (!success) {
+        setAuthError('注册失败，用户名可能已存在');
+      }
+    } catch  {
+      setAuthError('注册失败，请稍后再试');
+    }
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="bg-white px-6 py-8 rounded-xl border border-gray-200 min-w-[320px] w-full max-w-[400px] mx-auto shadow-lg transition-all duration-300">
-        <div className="flex flex-col items-center mb-6">
-          <h2 className="text-center text-2xl font-semibold text-gray-800 mb-2 tracking-wide">
-            {isLogin ? '登录' : '注册'}
-          </h2>
-        </div>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="mb-4 relative">
-            <span className="absolute left-3 top-10 text-gray-400">
-              <FaUserAlt size={16} />
-            </span>
-            <input
-              {...register('username', { required: '用户名不能为空' })}
-              name="username"
-              type="text"
-              autoComplete="username"
-              placeholder="用户名"
-              className={`w-full pl-10 pr-3 py-2 border ${
-                errors.username ? 'border-red-400' : 'border-gray-200'
-              } rounded-md outline-none text-base focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-all duration-200 bg-gray-50`}
-              onFocus={() => clearErrors('username')}
-            />
-            <div className="h-5 text-xs text-red-500 mt-1">{errors.username?.message}</div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      <div className="max-w-md w-full space-y-8 p-8">
+        <div className="bg-white rounded-2xl shadow-xl p-8">
+          {/* 头部 */}
+          <div className="text-center mb-8">
+            <div className="mx-auto h-12 w-12 bg-blue-600 rounded-full flex items-center justify-center mb-4">
+              <FaUser className="h-6 w-6 text-white" />
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900">
+              {isLogin ? '登录' : '注册'}
+            </h2>
+            <p className="mt-2 text-gray-600">
+              {isLogin ? '欢迎回来，请登录您的账户' : '创建新账户，开始投票'}
+            </p>
           </div>
-          <div className="mb-4 relative">
-            <span className="absolute left-3 top-10 text-gray-400">
-              <FaLock size={16} />
-            </span>
-            <input
-              {...register('password', { required: '密码不能为空' })}
-              name="password"
-              type="password"
-              autoComplete={isLogin ? 'current-password' : 'new-password'}
-              placeholder="密码"
-              className={`w-full pl-10 pr-3 py-2 border ${
-                errors.password ? 'border-red-400' : 'border-gray-200'
-              } rounded-md outline-none text-base focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-all duration-200 bg-gray-50`}
-            />
-            <div className="h-5 text-xs text-red-500 mt-1">{errors.password?.message}</div>
-          </div>
-          {!isLogin && (
-            <div className="mb-6 relative">
-              <span className="absolute left-3 top-10 text-gray-400">
-                <FaLock size={16} />
-              </span>
-              <input
-                {...register('confirmPassword', {
-                  required: '请再次输入密码',
-                  validate: (value) => value === password || '两次密码不一致',
-                })}
-                name="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                placeholder="确认密码"
-                className={`w-full pl-10 pr-3 py-2 border ${
-                  errors.confirmPassword ? 'border-red-400' : 'border-gray-200'
-                } rounded-md outline-none text-base focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-all duration-200 bg-gray-50`}
-              />
-              <div className="h-5 text-xs text-red-500 mt-1">{errors.confirmPassword?.message}</div>
+
+          {/* 错误提示 */}
+          {authError && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-600 text-sm">{authError}</p>
             </div>
           )}
-          <input
-            type="submit"
-            value={isSubmitting ? (isLogin ? '登录中...' : '注册中...') : isLogin ? '登录' : '注册'}
-            disabled={isSubmitting}
-            className={`w-full py-2 bg-gray-800 hover:bg-gray-900 text-white border-none rounded-md font-semibold text-base cursor-pointer transition-all duration-150 mb-2 ${
-              isSubmitting ? 'opacity-60 cursor-not-allowed' : ''
-            }`}
-          />
-        </form>
-        <div className="mt-4 text-center">
-          <button
-            type="button"
-            className="text-gray-500 hover:text-gray-800 underline underline-offset-2 text-sm font-medium transition-colors duration-150"
-            onClick={() => [clearErrors(), setIsLogin((prev) => !prev)]}>
-            {isLogin ? '没有账号？去注册' : '已有账号？去登录'}
-          </button>
+
+          {/* 切换标签 */}
+          <div className="flex mb-6">
+            <button
+              onClick={() => {
+                setIsLogin(true);
+                setAuthError('');
+                registerForm.reset();
+              }}
+              className={`flex-1 py-2 px-4 text-center font-medium rounded-l-lg border ${
+                isLogin
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'
+              }`}
+            >
+              登录
+            </button>
+            <button
+              onClick={() => {
+                setIsLogin(false);
+                setAuthError('');
+                loginForm.reset();
+              }}
+              className={`flex-1 py-2 px-4 text-center font-medium rounded-r-lg border ${
+                !isLogin
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'
+              }`}
+            >
+              注册
+            </button>
+          </div>
+
+          {/* 登录表单 */}
+          {isLogin ? (
+            <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  用户名
+                </label>
+                <div className="relative">
+                  <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <input
+                    {...loginForm.register('username', { required: '请输入用户名' })}
+                    type="text"
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="请输入用户名"
+                  />
+                </div>
+                {loginForm.formState.errors.username && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {loginForm.formState.errors.username.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  密码
+                </label>
+                <div className="relative">
+                  <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <input
+                    {...loginForm.register('password', { required: '请输入密码' })}
+                    type={showPassword ? 'text' : 'password'}
+                    className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="请输入密码"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <FaEyeSlash className="h-4 w-4" /> : <FaEye className="h-4 w-4" />}
+                  </button>
+                </div>
+                {loginForm.formState.errors.password && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {loginForm.formState.errors.password.message}
+                  </p>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                disabled={loginForm.formState.isSubmitting}
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loginForm.formState.isSubmitting ? '登录中...' : '登录'}
+              </button>
+            </form>
+          ) : (
+            /* 注册表单 */
+            <form onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  用户名
+                </label>
+                <div className="relative">
+                  <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <input
+                    {...registerForm.register('username', { 
+                      required: '请输入用户名',
+                      minLength: { value: 3, message: '用户名至少3个字符' }
+                    })}
+                    type="text"
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="请输入用户名"
+                  />
+                </div>
+                {registerForm.formState.errors.username && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {registerForm.formState.errors.username.message}
+                  </p>
+                )}
+              </div>
+
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  密码
+                </label>
+                <div className="relative">
+                  <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <input
+                    {...registerForm.register('password', { 
+                      required: '请输入密码',
+                      minLength: { value: 6, message: '密码至少6个字符' }
+                    })}
+                    type={showPassword ? 'text' : 'password'}
+                    className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="请输入密码"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <FaEyeSlash className="h-4 w-4" /> : <FaEye className="h-4 w-4" />}
+                  </button>
+                </div>
+                {registerForm.formState.errors.password && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {registerForm.formState.errors.password.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  确认密码
+                </label>
+                <div className="relative">
+                  <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <input
+                    {...registerForm.register('confirmPassword', { required: '请确认密码' })}
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="请再次输入密码"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showConfirmPassword ? <FaEyeSlash className="h-4 w-4" /> : <FaEye className="h-4 w-4" />}
+                  </button>
+                </div>
+                {registerForm.formState.errors.confirmPassword && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {registerForm.formState.errors.confirmPassword.message}
+                  </p>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                disabled={registerForm.formState.isSubmitting}
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {registerForm.formState.isSubmitting ? '注册中...' : '注册'}
+              </button>
+            </form>
+          )}
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default Auth;

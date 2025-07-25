@@ -1,19 +1,34 @@
-import { Route, Routes } from 'react-router';
-import AuthPage from './components/Auth';
-import Home from './components/Home';
+import React from 'react';
+import {  Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
 import ProtectedLayout from './components/ProtectedLayout';
+import VoteList from './components/VoteList';
+import VoteDetail from './components/VoteDetail';
+import CreateVote from './components/CreateVote';
+import NoMatch from './components/NoMatch';
 
-const App = () => {
+const App: React.FC = () => {
   return (
-    <>
-      <Routes>
-        <Route path="/login" Component={AuthPage}></Route>
-
-        <Route element={<ProtectedLayout />}>
-          <Route index Component={Home}></Route>
-        </Route>
-      </Routes>
-    </>
+    <AuthProvider>
+        <Routes>
+          <Route path="/" element={
+            <ProtectedLayout>
+              <VoteList />
+            </ProtectedLayout>
+          } />
+          <Route path="/vote/:id" element={
+            <ProtectedLayout>
+              <VoteDetail />
+            </ProtectedLayout>
+          } />
+          <Route path="/create" element={
+            <ProtectedLayout>
+              <CreateVote />
+            </ProtectedLayout>
+          } />
+        <Route path='*' element={<NoMatch></NoMatch>}></Route>
+        </Routes>
+    </AuthProvider>
   );
 };
 
