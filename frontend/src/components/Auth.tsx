@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { FaUser, FaLock,  FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router';
 
 interface LoginFormData {
   username: string;
@@ -32,6 +33,7 @@ const Auth: React.FC = () => {
       if (!success) {
         setAuthError('用户名或密码错误');
       }
+
     } catch  {
       setAuthError('登录失败，请稍后再试');
     }

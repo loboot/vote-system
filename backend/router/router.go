@@ -30,6 +30,8 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 
 	r.Use(middleware.CORS())
 
+	r.Use(handlerMiddleWare(jwtMiddleware))
+
 	// 控制器
 	authController := controller.NewAuthController()
 	voteController := controller.NewVoteController()
@@ -41,7 +43,7 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 		auth := api.Group("/auth")
 		{
 			auth.POST("/register", authController.Register)
-			auth.GET("/profile", authController.GetProfile)
+			auth.GET("/profile", jwtMiddleware.MiddlewareFunc(), authController.GetProfile)
 
 			auth.POST("/login", jwtMiddleware.LoginHandler)
 			auth.POST("/refresh", jwtMiddleware.RefreshHandler)

@@ -17,15 +17,15 @@ const (
 )
 
 type UserClaims struct {
-	ID       uint   `json:"id`
-	Username string `json:"username`
+	ID       uint   `json:"id"`
+	Username string `json:"username"`
 }
 
 func PayloadFunc(data interface{}) jwt.MapClaims {
 	if user, ok := data.(*model.User); ok {
 		return jwt.MapClaims{
-			jwt.IdentityKey: user.ID,
-			"username":      user.Username,
+			IdentityKey: user.ID,
+			"username":  user.Username,
 		}
 	}
 	return jwt.MapClaims{}

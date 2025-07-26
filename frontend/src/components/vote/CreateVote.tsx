@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaPlus, FaTrash, FaCalendarAlt } from 'react-icons/fa';
+import { createVote } from '@/services/vote';
 
 interface CreateVoteForm {
   title: string;
@@ -99,26 +100,19 @@ const CreateVote: React.FC = () => {
       // 转换截止时间为时间戳
       const deadline = form.deadline ? Math.floor(new Date(form.deadline).getTime() / 1000) : 0;
 
-      const response = await fetch('http://localhost:8080/api/vote/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: form.title.trim(),
-          options: validOptions,
-          multi: form.multi,
-          deadline: deadline,
-        }),
-      });
+      const res = await createVote({
+        title: form.title.trim(),
+        options: validOptions,
+        multi: form.multi,
+        deadline: deadline,
+      })
 
-      const data = await response.json();
       
-      if (data.code === 200) {
+      if (res.code === 200) {
         alert('投票创建成功！');
         navigate('/');
       } else {
-        alert(data.message || '创建投票失败');
+        alert(res.message || '创建投票失败');
       }
     } catch (err) {
       alert('网络错误，请稍后重试');

@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaClock, FaUsers, FaCheckCircle, FaEdit, FaTrash } from 'react-icons/fa';
+import { deleteVote, getVote, submitVote } from '@/services/vote';
 
 interface Vote {
   id: number;
@@ -29,19 +30,25 @@ const VoteDetail: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
 
-  // 获取投票详情
-  const fetchVote = async () => {
+  const [voteOwner, setVoteOwner] = useState(false);
+
+  const checkOwner = useCallback(() => {
+    const user = localStorage.getItem('user');
+    if (user) {
+      const userData = JSON.parse(user);
+      setVoteOwner(userData.id === vote?.creator_id);
+    }
+  }, [vote]);
+
+  const fetchVoteData = useCallback(async () => {
     if (!id) return;
-    
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:8080/api/vote/${id}`);
-      const data = await response.json();
-      
-      if (data.code === 200) {
-        setVote(data.data);
+      const res = await getVote(id);
+      if (res.code === 200) {
+        setVote(res.data || null);
       } else {
-        setError(data.message || '获取投票详情失败');
+        setError(res.message || '获取投票详情失败');
       }
     } catch (err) {
       setError('网络错误，请稍后重试');
@@ -49,32 +56,15 @@ const VoteDetail: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
-    if (!id) return;
-    
-    const fetchVoteData = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`http://localhost:8080/api/vote/${id}`);
-        const data = await response.json();
-        
-        if (data.code === 200) {
-          setVote(data.data);
-        } else {
-          setError(data.message || '获取投票详情失败');
-        }
-      } catch (err) {
-        setError('网络错误，请稍后重试');
-        console.error('获取投票详情失败:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchVoteData();
-  }, [id]);
+  }, [fetchVoteData]);
+
+  useEffect(() => {
+    checkOwner();
+  }, [checkOwner]);
 
   // 处理选项选择
   const handleOptionChange = (optionId: number) => {
@@ -82,10 +72,8 @@ const VoteDetail: React.FC = () => {
 
     if (vote.multi) {
       // 多选模式
-      setSelectedOptions(prev => 
-        prev.includes(optionId)
-          ? prev.filter(id => id !== optionId)
-          : [...prev, optionId]
+      setSelectedOptions((prev) =>
+        prev.includes(optionId) ? prev.filter((id) => id !== optionId) : [...prev, optionId]
       );
     } else {
       // 单选模式
@@ -99,34 +87,43 @@ const VoteDetail: React.FC = () => {
 
     try {
       setSubmitting(true);
-      const response = await fetch('http://localhost:8080/api/vote/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          vote_id: vote.id,
-          option_ids: selectedOptions,
-        }),
+      const res = await submitVote({
+        vote_id: vote.id,
+        option_ids: selectedOptions,
       });
 
-      const data = await response.json();
-      
-      if (data.code === 200) {
+      if (res.code === 200) {
         setHasVoted(true);
         // 重新获取投票数据以更新计数
-        await fetchVote();
+        await fetchVoteData();
         alert('投票成功！');
       } else {
-        alert(data.message || '投票失败');
+        alert(res.message || '投票失败');
       }
-    } catch (err) {
+    } catch {
       alert('网络错误，请稍后重试');
-      console.error('提交投票失败:', err);
     } finally {
       setSubmitting(false);
     }
   };
+
+  // 删除投票
+  const handleDeleteVote = async () => {
+    if (!vote) return;
+
+    if (window.confirm('确定要删除此投票吗？')) {
+      try {
+        await deleteVote(vote.id);
+        alert('投票已删除');
+        navigate('/'); // 删除后返回首页
+      } catch {
+        alert('删除投票失败，请稍后重试');
+      }
+    }
+  };
+
+  // 编辑
+  const handleEditVote = () => {};
 
   // 格式化日期
   const formatDate = (timestamp: number) => {
@@ -173,14 +170,12 @@ const VoteDetail: React.FC = () => {
           <div className="space-x-4">
             <button
               onClick={() => navigate('/')}
-              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-            >
+              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
               返回首页
             </button>
             <button
-              onClick={fetchVote}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
+              onClick={fetchVoteData}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
               重试
             </button>
           </div>
@@ -200,8 +195,7 @@ const VoteDetail: React.FC = () => {
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate('/')}
-              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-            >
+              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
               <FaArrowLeft className="w-5 h-5" />
             </button>
             <div className="flex-1">
@@ -215,11 +209,10 @@ const VoteDetail: React.FC = () => {
                   <FaClock className="w-4 h-4 mr-1" />
                   {formatDate(vote.deadline)}
                 </div>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  vote.multi 
-                    ? 'bg-purple-100 text-purple-800' 
-                    : 'bg-blue-100 text-blue-800'
-                }`}>
+                <span
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    vote.multi ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+                  }`}>
                   {vote.multi ? '多选' : '单选'}
                 </span>
                 {expired ? (
@@ -235,22 +228,22 @@ const VoteDetail: React.FC = () => {
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => {/* 编辑投票 */}}
-                className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                title="编辑投票"
-              >
-                <FaEdit className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => {/* 删除投票 */}}
-                className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                title="删除投票"
-              >
-                <FaTrash className="w-4 h-4" />
-              </button>
-            </div>
+            {voteOwner && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleEditVote()}
+                  className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  title="编辑投票">
+                  <FaEdit className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => handleDeleteVote()}
+                  className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  title="删除投票">
+                  <FaTrash className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -270,17 +263,13 @@ const VoteDetail: React.FC = () => {
 
             {hasVoted && (
               <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-green-800">
-                  ✓ 您已成功投票！感谢参与。
-                </p>
+                <p className="text-green-800">✓ 您已成功投票！感谢参与。</p>
               </div>
             )}
 
             {expired && (
               <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-800">
-                  此投票已结束，无法继续投票。
-                </p>
+                <p className="text-red-800">此投票已结束，无法继续投票。</p>
               </div>
             )}
 
@@ -294,12 +283,9 @@ const VoteDetail: React.FC = () => {
                   <div
                     key={option.id}
                     className={`relative border rounded-lg p-4 cursor-pointer transition-all ${
-                      isSelected
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                      isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
                     } ${expired || hasVoted ? 'cursor-not-allowed opacity-75' : ''}`}
-                    onClick={() => !expired && !hasVoted && handleOptionChange(option.id)}
-                  >
+                    onClick={() => !expired && !hasVoted && handleOptionChange(option.id)}>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center">
                         <input
@@ -315,13 +301,12 @@ const VoteDetail: React.FC = () => {
                         {option.count} 票 ({percentage}%)
                       </div>
                     </div>
-                    
+
                     {/* 进度条 */}
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
                         className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${percentage}%` }}
-                      ></div>
+                        style={{ width: `${percentage}%` }}></div>
                     </div>
                   </div>
                 );
@@ -338,8 +323,7 @@ const VoteDetail: React.FC = () => {
                     selectedOptions.length === 0 || submitting
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-blue-600 text-white hover:bg-blue-700'
-                  }`}
-                >
+                  }`}>
                   {submitting ? '提交中...' : '提交投票'}
                 </button>
               </div>

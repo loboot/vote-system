@@ -10,6 +10,6 @@ export interface LoginCredentials {
   password: string;
 }
 
-export interface RegisterCredentials extends LoginCredentials {
-  confirmPassword: string;
-}
+export type RegisterCredentials = LoginCredentials;
+
+export type UserProfile = Pick<User, 'id' | 'username'>;

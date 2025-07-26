@@ -1,12 +1,9 @@
+import { TOKEN_KEY } from '@/constant/var';
+import { GetProfile, Login, Register } from '@/services/auth';
+import type { User } from '@/types/auth';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 
-// 用户信息类型
-export interface User {
-  id: number;
-  username: string;
-  email: string;
-}
 
 // 认证上下文类型
 interface AuthContextType {
@@ -28,16 +25,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // 检查本地存储的token
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem(TOKEN_KEY);
     if (token) {
-      // 这里可以验证token的有效性
-      // 暂时简化处理，实际项目中应该向后端验证token
       const userData = localStorage.getItem('user');
       if (userData) {
         try {
           setUser(JSON.parse(userData));
         } catch {
-          localStorage.removeItem('token');
+          localStorage.removeItem(TOKEN_KEY);
           localStorage.removeItem('user');
         }
       }
@@ -48,24 +43,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // 登录函数
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
-      const response = await fetch('http://localhost:8080/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
-
-      const data = await response.json();
+      const data = await Login({ username, password });
 
       if (data.code === 200) {
-        const userData = data.data;
-        setUser(userData);
-        localStorage.setItem('token', userData.token || 'dummy-token');
-        localStorage.setItem('user', JSON.stringify(userData));
+        const token = data.token;
+
+        localStorage.setItem(TOKEN_KEY, token);
+        const res = await GetProfile();
+        localStorage.setItem('user', JSON.stringify(res.data));
+
+        setUser(res.data || null);
         return true;
       } else {
-        console.error('登录失败:', data.message);
+        console.error('登录失败:');
         return false;
       }
     } catch (error) {
@@ -77,15 +67,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // 注册函数
   const register = async (username: string,  password: string): Promise<boolean> => {
     try {
-      const response = await fetch('http://localhost:8080/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username,  password }),
-      });
-
-      const data = await response.json();
+      const data = await Register({username,password})
 
       if (data.code === 200) {
         // 注册成功后自动登录
@@ -103,7 +85,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // 登出函数
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('token');
+    localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem('user');
   };
 
