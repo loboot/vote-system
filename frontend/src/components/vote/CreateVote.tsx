@@ -24,9 +24,9 @@ const CreateVote: React.FC = () => {
   // 添加选项
   const addOption = () => {
     if (form.options.length < 10) {
-      setForm(prev => ({
+      setForm((prev) => ({
         ...prev,
-        options: [...prev.options, '']
+        options: [...prev.options, ''],
       }));
     }
   };
@@ -34,18 +34,18 @@ const CreateVote: React.FC = () => {
   // 删除选项
   const removeOption = (index: number) => {
     if (form.options.length > 2) {
-      setForm(prev => ({
+      setForm((prev) => ({
         ...prev,
-        options: prev.options.filter((_, i) => i !== index)
+        options: prev.options.filter((_, i) => i !== index),
       }));
     }
   };
 
   // 更新选项内容
   const updateOption = (index: number, value: string) => {
-    setForm(prev => ({
+    setForm((prev) => ({
       ...prev,
-      options: prev.options.map((option, i) => i === index ? value : option)
+      options: prev.options.map((option, i) => (i === index ? value : option)),
     }));
   };
 
@@ -63,7 +63,7 @@ const CreateVote: React.FC = () => {
     }
 
     // 验证选项
-    const validOptions = form.options.filter(opt => opt.trim());
+    const validOptions = form.options.filter((opt) => opt.trim());
     if (validOptions.length < 2) {
       newErrors.options = '至少需要2个有效选项';
     } else if (validOptions.length !== new Set(validOptions).size) {
@@ -86,17 +86,17 @@ const CreateVote: React.FC = () => {
   // 提交表单
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
 
     try {
       setSubmitting(true);
-      
+
       // 过滤空选项
-      const validOptions = form.options.filter(opt => opt.trim());
-      
+      const validOptions = form.options.filter((opt) => opt.trim());
+
       // 转换截止时间为时间戳
       const deadline = form.deadline ? Math.floor(new Date(form.deadline).getTime() / 1000) : 0;
 
@@ -105,9 +105,8 @@ const CreateVote: React.FC = () => {
         options: validOptions,
         multi: form.multi,
         deadline: deadline,
-      })
+      });
 
-      
       if (res.code === 200) {
         alert('投票创建成功！');
         navigate('/');
@@ -137,8 +136,7 @@ const CreateVote: React.FC = () => {
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate('/')}
-              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-            >
+              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
               <FaArrowLeft className="w-5 h-5" />
             </button>
             <div>
@@ -161,32 +159,26 @@ const CreateVote: React.FC = () => {
               <input
                 type="text"
                 value={form.title}
-                onChange={(e) => setForm(prev => ({ ...prev, title: e.target.value }))}
+                onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
                 placeholder="请输入投票标题..."
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors ${
-                  errors.title ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                  errors.title ? 'border-red-300 bg-red' : 'border-gray-300'
                 }`}
                 maxLength={100}
               />
-              {errors.title && (
-                <p className="mt-1 text-sm text-red-600">{errors.title}</p>
-              )}
-              <p className="mt-1 text-sm text-gray-500">
-                {form.title.length}/100 字符
-              </p>
+              {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
+              <p className="mt-1 text-sm text-gray-500">{form.title.length}/100 字符</p>
             </div>
 
             {/* 投票类型 */}
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                投票类型
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-3">投票类型</label>
               <div className="flex gap-4">
                 <label className="flex items-center">
                   <input
                     type="radio"
                     checked={!form.multi}
-                    onChange={() => setForm(prev => ({ ...prev, multi: false }))}
+                    onChange={() => setForm((prev) => ({ ...prev, multi: false }))}
                     className="mr-2"
                   />
                   <span className="text-gray-700">单选投票</span>
@@ -195,7 +187,7 @@ const CreateVote: React.FC = () => {
                   <input
                     type="radio"
                     checked={form.multi}
-                    onChange={() => setForm(prev => ({ ...prev, multi: true }))}
+                    onChange={() => setForm((prev) => ({ ...prev, multi: true }))}
                     className="mr-2"
                   />
                   <span className="text-gray-700">多选投票</span>
@@ -229,45 +221,37 @@ const CreateVote: React.FC = () => {
                         type="button"
                         onClick={() => removeOption(index)}
                         className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
-                        title="删除选项"
-                      >
+                        title="删除选项">
                         <FaTrash className="w-4 h-4" />
                       </button>
                     )}
                   </div>
                 ))}
               </div>
-              
+
               {form.options.length < 10 && (
                 <button
                   type="button"
                   onClick={addOption}
-                  className="mt-3 inline-flex items-center px-4 py-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
-                >
+                  className="mt-3 inline-flex items-center px-4 py-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors">
                   <FaPlus className="w-4 h-4 mr-2" />
                   添加选项
                 </button>
               )}
-              
-              {errors.options && (
-                <p className="mt-2 text-sm text-red-600">{errors.options}</p>
-              )}
-              
-              <p className="mt-2 text-sm text-gray-500">
-                最多可添加10个选项，每个选项最多50个字符
-              </p>
+
+              {errors.options && <p className="mt-2 text-sm text-red-600">{errors.options}</p>}
+
+              <p className="mt-2 text-sm text-gray-500">最多可添加10个选项，每个选项最多50个字符</p>
             </div>
 
             {/* 截止时间 */}
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                截止时间 (可选)
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">截止时间 (可选)</label>
               <div className="relative">
                 <input
                   type="datetime-local"
                   value={form.deadline}
-                  onChange={(e) => setForm(prev => ({ ...prev, deadline: e.target.value }))}
+                  onChange={(e) => setForm((prev) => ({ ...prev, deadline: e.target.value }))}
                   min={getCurrentDateTime()}
                   className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors ${
                     errors.deadline ? 'border-red-300 bg-red-50' : 'border-gray-300'
@@ -275,12 +259,8 @@ const CreateVote: React.FC = () => {
                 />
                 <FaCalendarAlt className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
               </div>
-              {errors.deadline && (
-                <p className="mt-1 text-sm text-red-600">{errors.deadline}</p>
-              )}
-              <p className="mt-1 text-sm text-gray-500">
-                如果不设置截止时间，投票将一直开放
-              </p>
+              {errors.deadline && <p className="mt-1 text-sm text-red-600">{errors.deadline}</p>}
+              <p className="mt-1 text-sm text-gray-500">如果不设置截止时间，投票将一直开放</p>
             </div>
           </div>
 
@@ -289,19 +269,15 @@ const CreateVote: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate('/')}
-              className="px-8 py-3 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg font-medium transition-colors"
-            >
+              className="px-8 py-3 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg font-medium transition-colors">
               取消
             </button>
             <button
               type="submit"
               disabled={submitting}
               className={`px-8 py-3 rounded-lg font-medium transition-colors ${
-                submitting
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
-            >
+                submitting ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
+              }`}>
               {submitting ? '创建中...' : '创建投票'}
             </button>
           </div>
