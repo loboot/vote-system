@@ -16,6 +16,15 @@ func NewVoteService() *VoteService {
 	return &VoteService{}
 }
 
+func validSubmit(userId uint, voteId uint) bool {
+	// 检查是否投过票
+	var existingUserVote model.UserVote
+	if err := database.GetDB().Where("user_id = ? AND vote_id = ?", userId, voteId).First(&existingUserVote).Error; err == nil {
+		return false
+	}
+	return true
+}
+
 func (s *VoteService) CreateVote(req *dto.CreateVoteRequest, creatorID uint) (*model.Vote, error) {
 	vote := model.Vote{
 		Title:     req.Title,
@@ -39,7 +48,13 @@ func (s *VoteService) CreateVote(req *dto.CreateVoteRequest, creatorID uint) (*m
 	return &vote, nil
 }
 
-func (s *VoteService) GetVote(id uint) (*model.Vote, error) {
+// 定义返回结构体
+type VoteWithStatus struct {
+	model.Vote
+	HasVoted bool `json:"has_voted"`
+}
+
+func (s *VoteService) GetVote(id uint, userId uint) (*VoteWithStatus, error) {
 	var vote model.Vote
 	if err := database.GetDB().Preload("Options").First(&vote, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -47,7 +62,14 @@ func (s *VoteService) GetVote(id uint) (*model.Vote, error) {
 		}
 		return nil, err
 	}
-	return &vote, nil
+
+	// 检查用户是否已投票
+	hasVoted := !validSubmit(userId, vote.ID)
+
+	return &VoteWithStatus{
+		Vote:     vote,
+		HasVoted: hasVoted,
+	}, nil
 }
 
 func (s *VoteService) UpdateVote(req *dto.UpdateVoteRequest, userID uint) error {
@@ -126,6 +148,11 @@ func (s *VoteService) Vote(req *dto.VoteRequest, userID uint) error {
 		return err
 	}
 
+	// 检查是否投过票
+	if !validSubmit(userID, vote.ID) {
+		return errors.New("已投过票")
+	}
+
 	// 检查是否已过期
 	if vote.Deadline > 0 && time.Now().Unix() > vote.Deadline {
 		return errors.New("投票已过期")
@@ -162,16 +189,9 @@ func (s *VoteService) Vote(req *dto.VoteRequest, userID uint) error {
 
 	// 添加新的投票记录
 	for _, optionID := range req.OptionIDs {
-		// 检查是否已经投过这个选项
-		var existingVote model.UserVote
-		if err := tx.Where("user_id = ? AND vote_id = ? AND option_id = ?", userID, req.VoteID, optionID).First(&existingVote).Error; err == nil {
-			continue // 已经投过了，跳过
-		}
-
 		userVote := model.UserVote{
-			UserID:   userID,
-			VoteID:   req.VoteID,
-			OptionID: optionID,
+			UserID: userID,
+			VoteID: req.VoteID,
 		}
 
 		if err := tx.Create(&userVote).Error; err != nil {

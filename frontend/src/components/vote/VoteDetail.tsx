@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaClock, FaUsers, FaCheckCircle, FaEdit, FaTrash } from 'react-icons/fa';
+import { FaArrowLeft, FaClock, FaUsers, FaCheckCircle, FaTrash } from 'react-icons/fa';
 import { deleteVote, getVote, submitVote } from '@/services/vote';
 
 interface Vote {
@@ -11,6 +11,7 @@ interface Vote {
   creator_id: number;
   created_at: string;
   options: VoteOption[];
+  has_voted: boolean;
 }
 
 interface VoteOption {
@@ -28,7 +29,6 @@ const VoteDetail: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [selectedOptions, setSelectedOptions] = useState<number[]>([]);
   const [submitting, setSubmitting] = useState(false);
-  const [hasVoted, setHasVoted] = useState(false);
 
   const [voteOwner, setVoteOwner] = useState(false);
 
@@ -51,8 +51,7 @@ const VoteDetail: React.FC = () => {
         setError(res.message || '获取投票详情失败');
       }
     } catch (err) {
-      setError('网络错误，请稍后重试');
-      console.error('获取投票详情失败:', err);
+      setError(err as string);
     } finally {
       setLoading(false);
     }
@@ -93,7 +92,6 @@ const VoteDetail: React.FC = () => {
       });
 
       if (res.code === 200) {
-        setHasVoted(true);
         // 重新获取投票数据以更新计数
         await fetchVoteData();
         alert('投票成功！');
@@ -244,7 +242,7 @@ const VoteDetail: React.FC = () => {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="p-6">
             {/* 投票说明 */}
-            {!hasVoted && !expired && (
+            {!vote.has_voted && !expired && (
               <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-blue-800">
                   {vote.multi ? '您可以选择多个选项' : '请选择一个选项'}，然后点击提交投票。
@@ -252,7 +250,7 @@ const VoteDetail: React.FC = () => {
               </div>
             )}
 
-            {hasVoted && (
+            {vote.has_voted && (
               <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
                 <p className="text-green-800">✓ 您已成功投票！感谢参与。</p>
               </div>
@@ -275,15 +273,15 @@ const VoteDetail: React.FC = () => {
                     key={option.id}
                     className={`relative border rounded-lg p-4 cursor-pointer transition-all ${
                       isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
-                    } ${expired || hasVoted ? 'cursor-not-allowed opacity-75' : ''}`}
-                    onClick={() => !expired && !hasVoted && handleOptionChange(option.id)}>
+                    } ${expired || vote.has_voted ? 'cursor-not-allowed opacity-75' : ''}`}
+                    onClick={() => !expired && !vote.has_voted && handleOptionChange(option.id)}>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center">
                         <input
                           type={vote.multi ? 'checkbox' : 'radio'}
                           checked={isSelected}
-                          onChange={() => !expired && !hasVoted && handleOptionChange(option.id)}
-                          disabled={expired || hasVoted}
+                          onChange={() => !expired && !vote.has_voted && handleOptionChange(option.id)}
+                          disabled={expired || vote.has_voted}
                           className="mr-3"
                         />
                         <span className="text-gray-900 font-medium">{option.content}</span>
@@ -305,7 +303,7 @@ const VoteDetail: React.FC = () => {
             </div>
 
             {/* 提交按钮 */}
-            {!hasVoted && !expired && (
+            {!vote.has_voted && !expired && (
               <div className="mt-6 flex justify-center">
                 <button
                   onClick={handleSubmitVote}

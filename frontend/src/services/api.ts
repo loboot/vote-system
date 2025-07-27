@@ -11,6 +11,24 @@ api.interceptors.response.use(
     return response.data;
   },
   (error) => {
+    const response = error.response;
+    if (response) {
+      // 处理错误响应
+      if (response.status === 401) {
+        // 未授权，清除 token
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem('user');
+      } else if (response.status === 403) {
+        // 禁止访问
+        console.error('权限不足:', response.data.message);
+      } else {
+        return Promise.reject(response.data.message || ' 请求失败');
+      }
+    } else {
+      // 网络错误或其他错误
+      console.error('网络错误:', error.message);
+    }
+
     return Promise.reject(error);
   }
 );

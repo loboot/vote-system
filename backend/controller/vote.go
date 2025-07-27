@@ -45,14 +45,15 @@ func (ctrl *VoteController) CreateVote(c *gin.Context) {
 func (ctrl *VoteController) GetVote(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
+	userID := c.GetUint("user_id")
 	if err != nil {
 		utils.Error(c, http.StatusBadRequest, "无效的ID")
 		return
 	}
 
-	vote, err := ctrl.voteService.GetVote(uint(id))
+	vote, err := ctrl.voteService.GetVote(uint(id), userID)
 	if err != nil {
-		utils.Error(c, http.StatusNotFound, err.Error())
+		utils.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
