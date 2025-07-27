@@ -231,12 +231,6 @@ const VoteDetail: React.FC = () => {
             {voteOwner && (
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => handleEditVote()}
-                  className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                  title="编辑投票">
-                  <FaEdit className="w-4 h-4" />
-                </button>
-                <button
                   onClick={() => handleDeleteVote()}
                   className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                   title="删除投票">
