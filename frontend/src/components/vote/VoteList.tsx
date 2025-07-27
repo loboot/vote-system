@@ -100,11 +100,6 @@ const VoteList: React.FC = () => {
     return Date.now() / 1000 > deadline;
   };
 
-  // 计算总票数
-  const getTotalVotes = (options: VoteOption[]) => {
-    return options.reduce((total, option) => total + option.count, 0);
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
@@ -223,7 +218,7 @@ const VoteList: React.FC = () => {
                   {/* 投票统计 */}
                   <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                     <div className="flex items-center text-sm text-gray-600">
-                      <span className="inline-flex items-center">👥 {getTotalVotes(vote.options)} 人参与</span>
+                      <span className="inline-flex items-center">👥 {0} 人参与</span>
                     </div>
                     <div
                       className={`text-sm font-medium ${

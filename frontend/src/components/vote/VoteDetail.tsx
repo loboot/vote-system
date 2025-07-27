@@ -122,9 +122,6 @@ const VoteDetail: React.FC = () => {
     }
   };
 
-  // 编辑
-  const handleEditVote = () => {};
-
   // 格式化日期
   const formatDate = (timestamp: number) => {
     if (!timestamp) return '无截止时间';
