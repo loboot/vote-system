@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { FaUser, FaLock,  FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaUser, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router';
 
 interface LoginFormData {
   username: string;
@@ -33,19 +32,18 @@ const Auth: React.FC = () => {
       if (!success) {
         setAuthError('用户名或密码错误');
       }
-
-    } catch  {
+    } catch {
       setAuthError('登录失败，请稍后再试');
     }
   };
 
   const handleRegister = async (data: RegisterFormData) => {
     setAuthError('');
-    
+
     if (data.password !== data.confirmPassword) {
-      registerForm.setError('confirmPassword', { 
-        type: 'manual', 
-        message: '两次密码输入不一致' 
+      registerForm.setError('confirmPassword', {
+        type: 'manual',
+        message: '两次密码输入不一致',
       });
       return;
     }
@@ -55,7 +53,7 @@ const Auth: React.FC = () => {
       if (!success) {
         setAuthError('注册失败，用户名可能已存在');
       }
-    } catch  {
+    } catch {
       setAuthError('注册失败，请稍后再试');
     }
   };
@@ -69,12 +67,8 @@ const Auth: React.FC = () => {
             <div className="mx-auto h-12 w-12 bg-blue-600 rounded-full flex items-center justify-center mb-4">
               <FaUser className="h-6 w-6 text-white" />
             </div>
-            <h2 className="text-3xl font-bold text-gray-900">
-              {isLogin ? '登录' : '注册'}
-            </h2>
-            <p className="mt-2 text-gray-600">
-              {isLogin ? '欢迎回来，请登录您的账户' : '创建新账户，开始投票'}
-            </p>
+            <h2 className="text-3xl font-bold text-gray-900">{isLogin ? '登录' : '注册'}</h2>
+            <p className="mt-2 text-gray-600">{isLogin ? '欢迎回来，请登录您的账户' : '创建新账户，开始投票'}</p>
           </div>
 
           {/* 错误提示 */}
@@ -96,8 +90,7 @@ const Auth: React.FC = () => {
                 isLogin
                   ? 'bg-blue-600 text-white border-blue-600'
                   : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'
-              }`}
-            >
+              }`}>
               登录
             </button>
             <button
@@ -110,8 +103,7 @@ const Auth: React.FC = () => {
                 !isLogin
                   ? 'bg-blue-600 text-white border-blue-600'
                   : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'
-              }`}
-            >
+              }`}>
               注册
             </button>
           </div>
@@ -120,9 +112,7 @@ const Auth: React.FC = () => {
           {isLogin ? (
             <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  用户名
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">用户名</label>
                 <div className="relative">
                   <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <input
@@ -133,16 +123,12 @@ const Auth: React.FC = () => {
                   />
                 </div>
                 {loginForm.formState.errors.username && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {loginForm.formState.errors.username.message}
-                  </p>
+                  <p className="mt-1 text-sm text-red-600">{loginForm.formState.errors.username.message}</p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  密码
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">密码</label>
                 <div className="relative">
                   <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <input
@@ -154,23 +140,19 @@ const Auth: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
                     {showPassword ? <FaEyeSlash className="h-4 w-4" /> : <FaEye className="h-4 w-4" />}
                   </button>
                 </div>
                 {loginForm.formState.errors.password && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {loginForm.formState.errors.password.message}
-                  </p>
+                  <p className="mt-1 text-sm text-red-600">{loginForm.formState.errors.password.message}</p>
                 )}
               </div>
 
               <button
                 type="submit"
                 disabled={loginForm.formState.isSubmitting}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
                 {loginForm.formState.isSubmitting ? '登录中...' : '登录'}
               </button>
             </form>
@@ -178,15 +160,13 @@ const Auth: React.FC = () => {
             /* 注册表单 */
             <form onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  用户名
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">用户名</label>
                 <div className="relative">
                   <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <input
-                    {...registerForm.register('username', { 
+                    {...registerForm.register('username', {
                       required: '请输入用户名',
-                      minLength: { value: 3, message: '用户名至少3个字符' }
+                      minLength: { value: 3, message: '用户名至少3个字符' },
                     })}
                     type="text"
                     className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
@@ -194,23 +174,18 @@ const Auth: React.FC = () => {
                   />
                 </div>
                 {registerForm.formState.errors.username && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {registerForm.formState.errors.username.message}
-                  </p>
+                  <p className="mt-1 text-sm text-red-600">{registerForm.formState.errors.username.message}</p>
                 )}
               </div>
 
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  密码
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">密码</label>
                 <div className="relative">
                   <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <input
-                    {...registerForm.register('password', { 
+                    {...registerForm.register('password', {
                       required: '请输入密码',
-                      minLength: { value: 6, message: '密码至少6个字符' }
+                      minLength: { value: 6, message: '密码至少6个字符' },
                     })}
                     type={showPassword ? 'text' : 'password'}
                     className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
@@ -219,22 +194,17 @@ const Auth: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
                     {showPassword ? <FaEyeSlash className="h-4 w-4" /> : <FaEye className="h-4 w-4" />}
                   </button>
                 </div>
                 {registerForm.formState.errors.password && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {registerForm.formState.errors.password.message}
-                  </p>
+                  <p className="mt-1 text-sm text-red-600">{registerForm.formState.errors.password.message}</p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  确认密码
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">确认密码</label>
                 <div className="relative">
                   <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <input
@@ -246,23 +216,19 @@ const Auth: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
                     {showConfirmPassword ? <FaEyeSlash className="h-4 w-4" /> : <FaEye className="h-4 w-4" />}
                   </button>
                 </div>
                 {registerForm.formState.errors.confirmPassword && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {registerForm.formState.errors.confirmPassword.message}
-                  </p>
+                  <p className="mt-1 text-sm text-red-600">{registerForm.formState.errors.confirmPassword.message}</p>
                 )}
               </div>
 
               <button
                 type="submit"
                 disabled={registerForm.formState.isSubmitting}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
                 {registerForm.formState.isSubmitting ? '注册中...' : '注册'}
               </button>
             </form>

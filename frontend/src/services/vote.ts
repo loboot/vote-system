@@ -1,4 +1,4 @@
-import type { Vote, CreateVoteRequest, UpdateVoteRequest, VoteRequest, VoteResponse } from '@/types/vote';
+import type { Vote, CreateVoteRequest, UpdateVoteRequest, VoteRequest } from '@/types/vote';
 import type { Response } from '@/types/api';
 import api from './api';
 

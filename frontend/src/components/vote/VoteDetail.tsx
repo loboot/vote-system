@@ -2,16 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaClock, FaUsers, FaCheckCircle, FaTrash } from 'react-icons/fa';
 import { deleteVote, getVote, submitVote } from '@/services/vote';
+import type { Vote as BaseVote } from '@/types/vote';
 
-interface Vote {
-  id: number;
-  title: string;
-  multi: boolean;
-  deadline: number;
-  creator_id: number;
-  created_at: string;
-  options: VoteOption[];
-  has_voted: boolean;
+interface Vote extends BaseVote {
+  has_voted?: boolean;
 }
 
 interface VoteOption {
