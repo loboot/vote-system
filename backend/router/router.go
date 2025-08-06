@@ -30,7 +30,7 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 
 	r.Use(middleware.CORS())
 
-	r.Use(handlerMiddleWare(jwtMiddleware))
+	handlerMiddleWare(jwtMiddleware)
 
 	// 控制器
 	authController := controller.NewAuthController()
