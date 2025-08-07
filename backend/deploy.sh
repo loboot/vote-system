@@ -16,10 +16,8 @@ go build -o vote-system main.go
 
 echo "打包完成"
 
-
 #上传至服务器
 scp vote-system app@8.130.46.122:"$TARGET_DIR/"
-
 
 
 if [ $? -eq 0 ]; then
