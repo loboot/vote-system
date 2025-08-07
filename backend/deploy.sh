@@ -3,7 +3,7 @@
 #部署至Linux
 
 WORKSPACE=$(dirname "$0")
-TARGET_DIR="~/web/vote-system"
+TARGET_DIR="~"
 
 echo "开始部署..."
 
