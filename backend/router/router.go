@@ -6,18 +6,8 @@ import (
 	"vote-system-backend/controller"
 	"vote-system-backend/middleware"
 
-	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 )
-
-func handlerMiddleWare(authMiddleware *jwt.GinJWTMiddleware) gin.HandlerFunc {
-	return func(context *gin.Context) {
-		errInit := authMiddleware.MiddlewareInit()
-		if errInit != nil {
-			log.Fatal("authMiddleware.MiddlewareInit() Error:" + errInit.Error())
-		}
-	}
-}
 
 func SetupRouter(cfg *config.Config) *gin.Engine {
 	r := gin.Default()
@@ -29,8 +19,6 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 	}
 
 	r.Use(middleware.CORS())
-
-	handlerMiddleWare(jwtMiddleware)
 
 	// 控制器
 	authController := controller.NewAuthController()
