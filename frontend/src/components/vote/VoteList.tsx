@@ -105,8 +105,8 @@ const VoteList: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
         <div className="text-center">
           <div className="relative">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 mx-auto"></div>
-            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-600 mx-auto absolute top-0"></div>
+            {/* <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 mx-auto"></div> */}
+            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-600 mx-auto "></div>
           </div>
           <p className="mt-6 text-lg text-gray-600 font-medium">加载中...</p>
           <p className="mt-2 text-sm text-gray-500">正在获取投票数据</p>
