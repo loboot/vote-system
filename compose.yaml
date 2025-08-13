@@ -1,0 +1,63 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: vote-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: vote_db
+    command: --default-authentication-plugin=mysql_native_password
+    ports:
+      - '3307:3306'
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - my-network
+
+  backend:
+    #使用./backend下的Dockerfile构建后端服务
+    build:
+      context: ./backend
+    container_name: vote-backend
+    depends_on:
+      - mysql
+    environment:
+      GIN_MODE: release
+      GO_ENV: production
+      PORT: ':8080'
+      JWT_SECRET: '1234567890abcdef'
+      DATABASE_DSN: root:root@tcp(mysql:3306)/vote_db?charset=utf8mb4,utf8&parseTime=True&loc=Local
+    networks:
+      - my-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: vote-frontend
+    ports:
+      - '80:80'
+    networks:
+      - my-network
+    # 依赖于backend服务，在backend服务启动后再启动frontend服务
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  adminer:
+    image: adminer:latest
+    container_name: vote-adminer
+    depends_on:
+      - mysql
+    ports:
+      - '8081:8080'
+    networks:
+      - my-network
+    restart: unless-stopped
+
+volumes:
+  db_data:
+
+#显示声明网络 以下为默认值
+networks:
+  my-network:
+    driver: bridge

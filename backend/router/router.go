@@ -18,7 +18,7 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 		log.Fatal("JWT Error:" + err.Error())
 	}
 
-	r.Use(middleware.CORS())
+	// r.Use(middleware.CORS())
 
 	// 控制器
 	authController := controller.NewAuthController()
