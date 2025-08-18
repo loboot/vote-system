@@ -65,9 +65,8 @@ const Auth: React.FC = () => {
           {/* 头部 */}
           <div className="text-center mb-8">
             <div className="mx-auto h-12 w-12 bg-blue-600 rounded-full flex items-center justify-center mb-4">
-              <FaUser className="h-6 w-6 text-white" />
+              <img src="/LOGO.png" alt="" />
             </div>
-            <h2 className="text-3xl font-bold text-gray-900">{isLogin ? '登录' : '注册'}</h2>
             <p className="mt-2 text-gray-600">{isLogin ? '欢迎回来，请登录您的账户' : '创建新账户，开始投票'}</p>
           </div>
 
